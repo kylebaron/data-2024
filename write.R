@@ -15,7 +15,7 @@ fst::threads_fst(nt)
 data.table::setDTthreads(nt)
 
 x <- microbenchmark(
-  "base::write.csv()" = write.csv(diamonds, "diamonds20.csv"), 
+  "utils::write.csv()" = write.csv(diamonds, "diamonds20.csv"), 
   "readr::write_csv()" = write_csv(diamonds, "diamonds20.csv", progress = FALSE), 
   "vroom::vroom_write()" = vroom_write(diamonds, "diamonds20.csv", progress = FALSE), 
   "data.table::fwrite()" = fwrite(diamonds, "diamonds20.csv"), 
@@ -23,8 +23,8 @@ x <- microbenchmark(
   "base::saveRDS()" = saveRDS(diamonds, "diamonds20.rds"), 
   "qs::qsave()" = qsave(diamonds, "diamonds20.qs", nthreads = nt), 
   "fst::write_fst()" = write_fst(diamonds, "diamonds20.fst"),
-  "arrow::write_feather()" = write_feather(diamonds, "diamonds20.feather", compression = "lz4"),
   "arrow::write_parquet()" = write_parquet(diamonds, "diamonds20.parquet", compression = "lz4"),
+  "arrow::write_feather()" = write_feather(diamonds, "diamonds20.feather", compression = "lz4"),
   times = 5
 ) 
 

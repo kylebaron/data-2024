@@ -1,4 +1,11 @@
+library(vroom)
+library(data.table)
+library(readr)
+library(microbenchmark)
+library(qs)
 library(arrow)
+library(fst)
+library(dplyr)
 
 bucket <- s3_bucket("voltrondata-labs-datasets/nyc-taxi-tiny")
 copy_files(from = bucket, to = "nyc-taxi")
@@ -23,10 +30,17 @@ sizes <- c(
   file.size("data/taxi.feather")
 )
 
-tibble(
-  data = "taxi-tiny",
-  format = c("csv", "rds", "qs", "fst", "parquet", "feather"),
-  size = round(sizes/1000/1000, 1),
-  unit = "MB", 
-  reduction = 1-size / first(size)
+dd <- tibble(
+  Data = "taxi-tiny",
+  Format = c("csv", "rds", "qs", "fst", "parquet", "feather"),
+  Size = round(sizes/1000/1000, 1),
+  Unit = "MB", 
+  Relative = Size / first(Size)
 )
+
+dd
+
+saveRDS(dd, file = "results/results-size-taxi.rds")
+
+
+

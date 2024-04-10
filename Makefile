@@ -10,6 +10,13 @@ write:
 	
 read:
 	Rscript read.R
+
+size: 
+	Rscript size.R
+
+.PHONY: results
+results: 
+	Rscript results.R
   
 clean: 
 	rm *.csv

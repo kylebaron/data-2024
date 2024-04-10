@@ -23,7 +23,7 @@ write_fst(x = diamonds, path = "diamonds20.fst")
 
 
 x <- microbenchmark(
-  "base::read.csv()" = read.csv("diamonds20.csv", header = TRUE), 
+  "utils::read.csv()" = read.csv("diamonds20.csv", header = TRUE), 
   "readr::read_csv()" = read_csv("diamonds20.csv", show_col_types = FALSE, progress = FALSE), 
   "vroom::vroom()" = vroom("diamonds20.csv", show_col_types = FALSE, progress = FALSE), 
   "data.table::fread()" = fread("diamonds20.csv"), 
@@ -31,8 +31,8 @@ x <- microbenchmark(
   "base::readRDS()" = readRDS("diamonds20.rds"), 
   "qs::qread()" = qread("diamonds20.qs", nthreads = nt), 
   "fst::read_fst()" = read_fst("diamonds20.fst"),
-  "arrow::read_feather()" = read_feather("diamonds20.feather"),
   "arrow::read_parquet()" = read_parquet("diamonds20.parquet"), 
+  "arrow::read_feather()" = read_feather("diamonds20.feather"),
   times = 10
 ) 
 
