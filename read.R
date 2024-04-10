@@ -26,7 +26,7 @@ write_fst(x = diamonds, path = "diamonds20.fst")
 x <- microbenchmark(
   "utils::read.csv()" = read.csv("diamonds20.csv", header = TRUE), 
   "readr::read_csv()" = read_csv("diamonds20.csv", show_col_types = FALSE, progress = FALSE), 
-  "vroom::vroom()" = vroom("diamonds20.csv", show_col_types = FALSE, progress = FALSE), 
+  "vroom::vroom()" = vroom("diamonds20.csv", show_col_types = FALSE, progress = FALSE, num_threads = nt), 
   "data.table::fread()" = fread("diamonds20.csv", nThread=nt), 
   "arrow::read_csv_arrow()" = read_csv_arrow("diamonds20.csv"), 
   "base::readRDS()" = readRDS("diamonds20.rds"), 
