@@ -1,0 +1,27 @@
+Version: 1
+
+Packages:
+  - dplyr
+  - readr
+  - fst
+  - qs
+  - arrow
+  - vroom
+  - data.table
+  - ggplot2
+  - yaml
+  - microbenchmark
+Repos:
+  - CRAN: https://packagemanager.posit.co/cran/2024-02-12
+
+Customizations:
+  Packages:
+  - arrow: 
+      Env:
+        NOT_CRAN: 'true'
+        LIBARROW_MINIMAL: 'false'      
+
+Lockfile:
+    Type: renv
+
+Rpath: ${R_EXE_4_1}
