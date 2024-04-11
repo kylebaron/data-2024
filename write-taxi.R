@@ -15,16 +15,16 @@ fst::threads_fst(nt)
 data.table::setDTthreads(nt)
 
 x <- microbenchmark(
-  "utils::write.csv()" = write.csv(taxi, "taxi.csv"), 
-  "readr::write_csv()" = write_csv(taxi, "taxi.csv", progress = FALSE), 
-  "vroom::vroom_write()" = vroom_write(taxi, "taxi.csv", progress = FALSE), 
-  "data.table::fwrite()" = fwrite(taxi, "taxi.csv"), 
+  "utils::write.csv()"       = write.csv(taxi, "taxi.csv"), 
+  "readr::write_csv()"       = write_csv(taxi, "taxi.csv", progress = FALSE), 
+  "vroom::vroom_write()"     = vroom_write(taxi, "taxi.csv", progress = FALSE), 
+  "data.table::fwrite()"     = fwrite(taxi, "taxi.csv"), 
   "arrow::write_csv_arrow()" = write_csv_arrow(taxi, "taxi.csv"), 
-  "base::saveRDS()" = saveRDS(taxi, "taxi.rds"), 
-  "qs::qsave()" = qsave(taxi, "taxi.qs", nthreads = nt), 
-  "fst::write_fst()" = write_fst(taxi, "taxi.fst"),
-  "arrow::write_parquet()" = write_parquet(taxi, "taxi.parquet", compression = "lz4"),
-  "arrow::write_feather()" = write_feather(taxi, "taxi.feather", compression = "lz4"),
+  "base::saveRDS()"          = saveRDS(taxi, "taxi.rds"), 
+  "qs::qsave()"              = qsave(taxi, "taxi.qs", nthreads = nt), 
+  "fst::write_fst()"         = write_fst(taxi, "taxi.fst"),
+  "arrow::write_parquet()"   = write_parquet(taxi, "taxi.parquet", compression = "lz4"),
+  "arrow::write_feather()"   = write_feather(taxi, "taxi.feather", compression = "lz4"),
   times = 5
 ) 
 

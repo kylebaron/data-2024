@@ -1,0 +1,11 @@
+library(vroom)
+library(data.table)
+library(readr)
+library(microbenchmark)
+library(qs)
+library(arrow)
+library(fst)
+library(dplyr)
+
+bucket <- s3_bucket("voltrondata-labs-datasets/nyc-taxi")
+copy_files(from = bucket, to = "nyc-taxi-full")
