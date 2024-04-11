@@ -33,8 +33,8 @@ dd <-
   summarise(Time = mean(time)/1e6, 
             Min = min(time)/1e6, Max = max(time)/1e6, n = n()) %>% 
   mutate(Relative = Time/nth(Time,2)) %>% 
-  mutate(across(Time:Max, round)) %>% 
-  select(Function = expr, Time, Relative, Min, Max, n)
+  mutate(across(Time:Max, round), Data = "diamonds") %>% 
+  select(Function = expr, Time, Relative, Min, Max, Data, n)
 
 dd
 

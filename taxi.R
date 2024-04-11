@@ -7,8 +7,8 @@ library(arrow)
 library(fst)
 library(dplyr)
 
-bucket <- s3_bucket("voltrondata-labs-datasets/nyc-taxi-tiny")
-copy_files(from = bucket, to = "nyc-taxi")
+bucket <- gs_bucket("voltrondata-labs-datasets/nyc-taxi-tiny", anonymous = TRUE)
+copy_files(from = bucket, to = "xx") 
 
 ds <- open_dataset("nyc-taxi")
 data <- collect(ds)
@@ -41,6 +41,3 @@ dd <- tibble(
 dd
 
 saveRDS(dd, file = "results/results-size-taxi.rds")
-
-
-
