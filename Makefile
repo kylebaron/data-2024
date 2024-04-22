@@ -10,30 +10,29 @@ all:
 	make results
 
 diamonds: 
-	Rscript diamonds.R
+	Rscript script/diamonds.R
 
 taxi: 
-	Rscript taxi.R
+	Rscript script/taxi.R
   
 write: 
-	Rscript write.R
+	Rscript script/write.R
 
 write-taxi: 
-	Rscript write-taxi.R
+	Rscript script/write-taxi.R
 
 read:
 	Rscript read.R
 
 read-taxi:
-	Rscript read-taxi.R
+	Rscript script/read-taxi.R
 
 size: 
-	Rscript size.R
-	Rscript size-taxi.R
+	Rscript script/size.R
 
 .PHONY: results
 results: 
-	Rscript results.R
+	Rscript script/results.R
 	
 
 clean: 

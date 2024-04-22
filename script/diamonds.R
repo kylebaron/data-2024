@@ -1,5 +1,6 @@
 library(data.table)
 library(dplyr)
+library(here)
 
 data(diamonds, package = "ggplot2")
 
@@ -13,5 +14,5 @@ diamonds20 <- lapply(1:20, function(i) {
   )
 }) %>% rbindlist()
 
-fwrite(diamonds20, "data/diamonds.csv")
+fwrite(diamonds20, here("data/diamonds.csv"))
 

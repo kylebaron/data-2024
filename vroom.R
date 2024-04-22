@@ -1,51 +1,50 @@
+library(readr)
 library(vroom)
 library(data.table)
 library(arrow)
 library(lobstr)
-library(readr)
+library(dplyr)
+options(pillar.width = Inf)
 
 file <- "data/taxi.csv"
 
-df <- read_csv(file)
-obj_size(df)
+system.time(df <- read_csv(file))
+lobstr::obj_size(df)
 
-v <- vroom(file)
+system.time(v <- vroom(file))
 lobstr::obj_size(v)
+
+names(v)
+lobstr::obj_size(v)
+
+unique(v$year)
+lobstr::obj_size(v)
+
 head(v)
 lobstr::obj_size(v)
+
 tail(v)
+lobstr::obj_size(v)
+
+v %>% group_by(vendor_name, passenger_count, payment_type) %>% 
+  summarise(tip = mean(tip_amount))
 lobstr::obj_size(v)
 
 dt <- as.data.table(v)
 lobstr::obj_size(dt)
 lobstr::obj_size(df)
 
+system.time(v1 <- vroom(file))
+system.time(v2 <- vroom(file, altrep = FALSE))
+system.time(v3 <- vroom(file, altrep = FALSE, col_select = c(1,3,5)))
 
-system.time(q <- qread("taxi.qs", use_alt_rep = TRUE, nthreads = 16))
-lobstr::obj_size(q)
-obj_size(as.data.table(q))
-system.time(qread("taxi.qs", nthreads = 1))
-system.time(qread("taxi.qs", nthreads = 16))
-
-
-a <- system.time(
-  v <- vroom(file, show_col_types = FALSE, progress = FALSE)
-)
-b <- system.time(
-  v2 <- vroom(file, show_col_types = FALSE, progress = FALSE, altrep = FALSE)
-)
-a[3]/b[3]
-
-lobstr::obj_size(v)
+lobstr::obj_size(v1)
 lobstr::obj_size(v2)
-lobstr::obj_size(as.data.table(v))
+lobstr::obj_size(v3)
 
 
-system.time(d <- fread(file))
-system.time(a <- read_csv_arrow(file))
-
-system.time(v <- vroom("data/diamonds.csv", show_col_types = FALSE, progress = FALSE, altrep = FALSE))
-system.time(v <- vroom("data/diamonds.csv", show_col_types = FALSE, progress = FALSE, num_threads=1))
-
-
-system.time(d <- fread("data/diamonds.csv", nThread=1))
+library(mmap)
+x <- rnorm(100)
+x <- as.mmap(mtcars)
+list.files(tempdir())
+foo <- x[]

@@ -1,0 +1,296 @@
+---
+title: Arrow demonstration
+---
+
+
+```{r}
+#| message: false
+library(mrgsolve)
+library(arrow)
+library(dplyr)
+library(glue)
+```
+
+```{r}
+#| message: false
+mod <- modlib("popex", end = 24, delta = 1)
+```
+
+```{r}
+dose <-
+  expand.ev(ID = 1:300, amt = c(100, 200, 300, 400), rep = 1:3000) %>%
+  mutate(dose = amt) %>% 
+  as_tibble() %>% 
+  mutate(chunk = rep(1:25, length.out = n()))
+
+dose
+
+length(unique(dose$ID))
+
+nrow(dose) * 26
+```
+
+```{r}
+mrgsim(mod, slice(dose, 1)) %>% plot("IPRED")
+```
+
+```{r}
+sp <- split(dose, dose$chunk)
+
+length(sp)
+
+sp[[1]]
+```
+
+```{r}
+unlink("output", recursive = TRUE)
+
+dir.create("output")
+
+out <- parallel::mclapply(sp, function(chunk) {
+  
+  out <- mrgsim_df(mod, chunk, carry_out = "chunk,dose,rep")
+  
+  write_dataset(out, "output", partitioning = c("chunk", "dose"))
+  
+}, mc.cores = 5)
+```
+
+```{r}
+ds <- open_dataset("output") # instant
+
+ds # load when needed
+
+nrow(ds)
+```
+
+```{r}
+read_parquet("output/chunk=6/dose=100/part-0.parquet") %>% names()
+```
+
+
+```{r}
+filter(ds, rep==1521)
+
+filter(ds, rep==1521) %>% class()
+```
+
+
+```{r}
+system.time(
+  filter(ds, rep==1521) %>% collect()
+)
+
+filter(ds, rep==1521) %>% as_tibble()
+
+```
+
+
+```{r}
+filter(ds, rep==1521) %>% select(ID, time, IPRED)
+
+filter(ds, rep==1521) %>% select(ID, time, IPRED) %>% collect()
+```
+
+
+```{r}
+system.time({
+  open_dataset("output") %>% 
+    filter(rep==1521) %>% 
+    collect()
+})
+```
+
+Get the mean trough concentration for 200 mg dose
+
+```{r}
+# system.time(collect(ds)) # all the data, as a data frame in memory
+
+system.time({
+  sims1 <- 
+    ds %>% 
+    filter(dose==200, time==24)  %>%
+    group_by(rep) %>% 
+    summarise(Mean = mean(IPRED), .groups = "drop") %>%
+    arrange(rep) %>% 
+    collect()
+}); sims1
+```
+
+
+```{r}
+#' Get mean trough concentration for all doses
+system.time({
+  sims1b <- 
+    ds %>% 
+    filter(time==24)  %>%
+    group_by(rep, dose) %>% 
+    summarise(Mean = mean(IPRED), n = n(), .groups = "drop") %>%
+    arrange(rep, dose) %>% 
+    collect()
+})
+```
+
+First collect, then summarise the data
+
+```{r}
+#' First collect, then summarise
+system.time({
+  sims2 <- 
+    collect(ds) %>% 
+    filter(dose ==200, time==24)  %>%
+    group_by(rep) %>% 
+    summarise(Mean = mean(IPRED), n = n(), .groups = "drop")
+})
+```
+
+# Multiple aggregation across all doses
+
+```{r}
+system.time({
+  sims5 <- 
+    ds %>% 
+    group_by(rep, dose, ID) %>% 
+    summarise(Cmax = max(IPRED), .groups = "drop") %>% 
+    group_by(rep, dose) %>%
+    summarise(med = mean(Cmax), .groups = "drop") %>%
+    group_by(dose) %>% 
+    summarise(
+      Med = median(med), 
+      Min = min(med), 
+      Max = max(med),
+      n = n()
+    ) %>% 
+    arrange(dose) %>% 
+    collect()
+})
+dim(ds)
+sims5  
+```
+
+
+# Collect first, then aggregate
+
+```{r}
+system.time({
+  sims6 <- 
+    ds %>% 
+    collect() %>% 
+    group_by(rep, dose, ID) %>% 
+    summarise(Cmax = max(IPRED), .groups = "drop") %>% 
+    group_by(rep, dose) %>%
+    summarise(med = mean(Cmax), .groups = "drop") %>%
+    group_by(dose) %>% 
+    summarise(
+      Med = median(med), 
+      Min = min(med), 
+      Max = max(med),
+      n = n()
+    ) %>% arrange(dose) 
+})
+sims6 
+```
+
+# Only aggregate
+
+```{r}
+system.time(x <- collect(ds))
+
+system.time({
+  sims7 <- 
+    x %>% 
+    group_by(rep, dose, ID) %>% 
+    summarise(Cmax = max(IPRED), .groups = "drop") %>% 
+    group_by(rep, dose) %>%
+    summarise(med = mean(Cmax), .groups = "drop") %>%
+    group_by(dose) %>% 
+    summarise(
+      Med = median(med), 
+      Min = min(med), 
+      Max = max(med),
+      n = n()
+    ) %>% arrange(dose)
+})
+```
+
+# Corece to arrow table, then aggregate
+
+```{r}
+system.time(at <- as_arrow_table(x))
+
+system.time({
+  sims8 <- 
+    at %>%
+    group_by(rep, dose, ID) %>% 
+    summarise(Cmax = max(IPRED), .groups = "drop") %>% 
+    group_by(rep, dose) %>%
+    summarise(med = mean(Cmax), .groups = "drop") %>%
+    group_by(dose) %>% 
+    summarise(
+      Med = median(med), 
+      Min = min(med), 
+      Max = max(med),
+      n = n()
+    ) %>% 
+    arrange(dose) %>% 
+    collect()
+})
+```
+
+# Single File API, with data.frame
+
+- Data frame is _in memory_
+
+```{r}
+# write_parquet(ds, sink = "ds.parquet")
+```
+
+```{r}
+file.size("ds.parquet") / 1e6
+
+system.time(df <- read_parquet("ds.parquet"))
+
+system.time({
+  sims9 <-
+    df %>%
+    group_by(rep, dose, ID) %>%
+    summarise(Cmax = max(IPRED), .groups = "drop") %>%
+    group_by(rep, dose) %>%
+    summarise(med = mean(Cmax), .groups = "drop") %>%
+    group_by(dose) %>%
+    summarise(
+      Med = median(med),
+      Min = min(med),
+      Max = max(med),
+      n = n()
+    ) %>%
+    arrange(dose)
+})
+```
+
+# Single file API with ArrowTable
+
+- ArrowTable is _in memory_
+
+```{r}
+system.time(at <- read_parquet("ds.parquet", as_data_frame=FALSE))
+
+system.time({
+  sims10 <-
+    at %>%
+    group_by(rep, dose, ID) %>%
+    summarise(Cmax = max(IPRED), .groups = "drop") %>%
+    group_by(rep, dose) %>%
+    summarise(med = mean(Cmax), .groups = "drop") %>%
+    group_by(dose) %>%
+    summarise(
+      Med = median(med), 
+      Min = min(med), 
+      Max = max(med),
+      n = n()
+    ) %>% 
+    arrange(dose) %>%
+    collect()
+})
+```
+
