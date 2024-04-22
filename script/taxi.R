@@ -7,8 +7,8 @@ library(arrow)
 library(fst)
 library(dplyr)
 
-bucket <- gs_bucket("voltrondata-labs-datasets/nyc-taxi-tiny", anonymous = TRUE)
-copy_files(from = bucket, to = "xx") 
+bucket <- s3_bucket("voltrondata-labs-datasets/nyc-taxi-tiny")
+copy_files(from = bucket, to = "nyc-taxi")
 
 ds <- open_dataset("nyc-taxi")
 data <- collect(ds)
