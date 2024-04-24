@@ -31,7 +31,8 @@ nrow(dose) * 26
 ```
 
 ```{r}
-mrgsim(mod, slice(dose, 1)) %>% plot("IPRED")
+#| fig.width = 4, fig.height = 3
+mrgsim(mod, slice(dose, 1)) %>% plot("IPRED", ylab = "Concentration")
 ```
 
 ```{r}
@@ -66,6 +67,7 @@ nrow(ds)
 
 ```{r}
 read_parquet("output/chunk=6/dose=100/part-0.parquet") %>% names()
+names(ds)
 ```
 
 
@@ -77,11 +79,11 @@ filter(ds, rep==1521) %>% class()
 
 
 ```{r}
-system.time(
-  filter(ds, rep==1521) %>% collect()
-)
+filter(ds, rep==1521) %>% collect()
 
-filter(ds, rep==1521) %>% as_tibble()
+system.time(
+  filter(ds, rep==1521) %>% as_tibble()
+) # ~2 sec for feather
 
 ```
 
@@ -150,6 +152,7 @@ system.time({
 system.time({
   sims5 <- 
     ds %>% 
+    group_by(rep) %>%
     group_by(rep, dose, ID) %>% 
     summarise(Cmax = max(IPRED), .groups = "drop") %>% 
     group_by(rep, dose) %>%
@@ -191,7 +194,10 @@ system.time({
 sims6 
 ```
 
-# Only aggregate
+
+# Can Arrow Table speed up vs data.frame?
+
+## Only aggregate
 
 ```{r}
 system.time(x <- collect(ds))
@@ -213,7 +219,7 @@ system.time({
 })
 ```
 
-# Corece to arrow table, then aggregate
+# Coerce to arrow table, then aggregate
 
 ```{r}
 system.time(at <- as_arrow_table(x))
